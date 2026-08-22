@@ -1,0 +1,47 @@
+import express from "express";
+import cors from "cors";
+import path from "node:path";
+import fs from "node:fs";
+import authRoutes from "./routes/auth.js";
+import categoriesRoutes from "./routes/categories.js";
+import templatesRoutes from "./routes/templates.js";
+import casesRoutes from "./routes/cases.js";
+import certificatesRoutes from "./routes/certificates.js";
+
+const app = express();
+const PORT = Number(process.env.PORT) || 3001;
+
+app.use(cors());
+app.use(express.json({ limit: "2mb" }));
+
+// API routes
+app.use("/api/auth", authRoutes);
+app.use("/api/categories", categoriesRoutes);
+app.use("/api/templates", templatesRoutes);
+app.use("/api/cases", casesRoutes);
+app.use("/api/certificates", certificatesRoutes);
+
+// Serve extracted template files
+const TEMPLATES_DIR = path.resolve(process.cwd(), "public", "templates");
+if (!fs.existsSync(TEMPLATES_DIR)) fs.mkdirSync(TEMPLATES_DIR, { recursive: true });
+app.use("/templates", express.static(TEMPLATES_DIR, { fallthrough: true }));
+
+// Serve other static files from public (previews, media, etc.)
+app.use("/media", express.static(path.resolve(process.cwd(), "public", "media")));
+
+// Health check
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+// Production: serve built frontend from dist
+const DIST_DIR = path.resolve(process.cwd(), "dist");
+if (fs.existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR));
+  // SPA fallback: serve index.html for non-API, non-file routes
+  app.get("{*path}", (_req, res) => {
+    res.sendFile(path.join(DIST_DIR, "index.html"));
+  });
+}
+
+app.listen(PORT, "127.0.0.1", () => {
+  console.log(`Server running on http://127.0.0.1:${PORT}`);
+});
