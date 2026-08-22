@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Trash2, Upload, Loader2, X } from "lucide-react";
+import { Plus, Trash2, Upload, Loader2, X, Pencil } from "lucide-react";
 import { api } from "@/lib/api";
 import type { TemplateDTO, Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ export function AdminTemplates() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<TemplateDTO | null>(null);
 
   const refresh = useCallback(async () => {
     const [t, c] = await Promise.all([api.listTemplates(), api.listCategories()]);
@@ -84,6 +85,14 @@ export function AdminTemplates() {
                   </Link>
                   <button
                     type="button"
+                    onClick={() => setEditingTemplate(t)}
+                    aria-label={`Редактировать ${t.title}`}
+                    className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-border text-muted transition-colors duration-200 hover:text-foreground"
+                  >
+                    <Pencil aria-hidden className="size-4" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => handleDelete(t.id, t.title)}
                     aria-label={`Удалить ${t.title}`}
                     className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-border text-muted transition-colors duration-200 hover:border-red-500/50 hover:text-red-500"
@@ -100,9 +109,22 @@ export function AdminTemplates() {
       {showForm && (
         <TemplateForm
           categories={categories}
-          onClose={() => setShowForm(false)}
+          onClose={() => { setShowForm(false); setEditingTemplate(null); }}
           onSaved={() => {
             setShowForm(false);
+            setEditingTemplate(null);
+            refresh();
+          }}
+        />
+      )}
+
+      {editingTemplate && (
+        <TemplateEditForm
+          template={editingTemplate}
+          categories={categories}
+          onClose={() => setEditingTemplate(null)}
+          onSaved={() => {
+            setEditingTemplate(null);
             refresh();
           }}
         />
@@ -321,6 +343,197 @@ function TemplateForm({ categories, onClose, onSaved }: TemplateFormProps) {
               </>
             )}
           </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Template edit form ── */
+
+interface TemplateEditFormProps {
+  template: TemplateDTO;
+  categories: Category[];
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+function TemplateEditForm({ template, categories, onClose, onSaved }: TemplateEditFormProps) {
+  const [title, setTitle] = useState(template.title);
+  const [categoryId, setCategoryId] = useState<string>(template.categoryId ? String(template.categoryId) : "");
+  const [tagsInput, setTagsInput] = useState(template.tags.join(", "));
+  const [previewImage, setPreviewImage] = useState(template.previewImage);
+  const [uploadingPreview, setUploadingPreview] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handlePreviewUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPreview(true);
+    try {
+      const res = await api.uploadPreview(file);
+      setPreviewImage(res.path);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка загрузки превью");
+    } finally {
+      setUploadingPreview(false);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!title.trim()) {
+      setError("Название обязательно");
+      return;
+    }
+
+    const tags = tagsInput.split(",").map((t) => t.trim()).filter(Boolean);
+
+    setSaving(true);
+    try {
+      await api.updateTemplate(template.id, {
+        title: title.trim(),
+        categoryId: categoryId ? Number(categoryId) : null,
+        tags,
+        previewImage,
+      });
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка сохранения");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 p-4 backdrop-blur-sm md:p-8">
+      <div className="my-8 w-full max-w-lg rounded-2xl border border-border bg-surface p-6 md:p-8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Редактировать шаблон</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Закрыть"
+            className="flex size-9 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+          >
+            <X aria-hidden className="size-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="te-title" className="text-sm font-medium">Название</label>
+            <input
+              id="te-title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="min-h-11 rounded-xl border border-border bg-background px-4 text-sm outline-none focus:border-accent"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="te-slug" className="text-sm font-medium">Slug (URL)</label>
+            <input
+              id="te-slug"
+              type="text"
+              value={template.slug}
+              disabled
+              className="min-h-11 rounded-xl border border-border bg-background px-4 text-sm text-muted outline-none"
+            />
+            <p className="text-xs text-muted">Slug нельзя изменить после создания</p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="te-cat" className="text-sm font-medium">Категория</label>
+            <select
+              id="te-cat"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="min-h-11 rounded-xl border border-border bg-background px-4 text-sm outline-none focus:border-accent"
+            >
+              <option value="">Без категории</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="te-tags" className="text-sm font-medium">Теги (через запятую)</label>
+            <input
+              id="te-tags"
+              type="text"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              placeholder="Меню, Онлайн-заказ, Карта"
+              className="min-h-11 rounded-xl border border-border bg-background px-4 text-sm outline-none focus:border-accent"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Превью изображение</label>
+            <div className="flex items-center gap-4">
+              {previewImage && (
+                <img
+                  src={previewImage}
+                  alt="Превью"
+                  width={80}
+                  height={60}
+                  className="size-20 rounded-lg border border-border object-cover"
+                />
+              )}
+              <label
+                htmlFor="te-preview"
+                className={cn(
+                  "inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-surface-2",
+                  uploadingPreview && "opacity-50",
+                )}
+              >
+                {uploadingPreview ? (
+                  <Loader2 aria-hidden className="size-4 animate-spin" />
+                ) : (
+                  <Upload aria-hidden className="size-4" />
+                )}
+                Заменить превью
+              </label>
+              <input
+                id="te-preview"
+                type="file"
+                accept="image/*"
+                onChange={handlePreviewUpload}
+                disabled={uploadingPreview}
+                className="hidden"
+              />
+            </div>
+            <p className="text-xs text-muted">Старое превью удалится автоматически при замене</p>
+          </div>
+
+          {error && (
+            <p role="alert" className="text-sm text-accent">{error}</p>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex min-h-11 items-center rounded-full border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-surface-2"
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              disabled={saving || uploadingPreview}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-[filter] duration-200 hover:brightness-110 disabled:opacity-50"
+            >
+              {saving && <Loader2 aria-hidden className="size-4 animate-spin" />}
+              Сохранить
+            </button>
+          </div>
         </form>
       </div>
     </div>

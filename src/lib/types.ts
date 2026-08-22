@@ -9,6 +9,7 @@ export interface TemplateDTO {
   slug: string;
   title: string;
   category: string | null;
+  categoryId: number | null;
   tags: string[];
   previewImage: string;
   demoUrl: string | null;

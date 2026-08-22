@@ -97,7 +97,7 @@ export const api = {
 
   updateTemplate: (
     id: number,
-    data: { title?: string; categoryId?: number; tags?: string[]; previewImage?: string },
+    data: { title?: string; categoryId?: number | null; tags?: string[]; previewImage?: string },
   ) =>
     request<{ ok: boolean }>(`/api/templates/${id}`, {
       method: "PUT",

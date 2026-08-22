@@ -99,6 +99,7 @@ router.get("/", (_req: Request, res: Response) => {
       slug: r.slug,
       title: r.title,
       category: r.category_name,
+      categoryId: r.category_id,
       tags: JSON.parse(r.tags) as string[],
       previewImage: r.preview_image,
       demoUrl: r.extracted_path ? `/templates/${r.extracted_path}` : null,
@@ -121,6 +122,7 @@ router.get("/:slug", (req: Request, res: Response) => {
     slug: row.slug,
     title: row.title,
     category: cat?.name ?? null,
+    categoryId: row.category_id,
     tags: JSON.parse(row.tags) as string[],
     previewImage: row.preview_image,
     demoUrl: row.extracted_path ? `/templates/${row.extracted_path}` : null,
@@ -248,11 +250,19 @@ router.put("/:id", requireAuth, (req: AuthedRequest, res: Response) => {
     return;
   }
 
+  // Delete old preview if previewImage changed
+  if (previewImage && previewImage !== existing.preview_image) {
+    const oldPreviewPath = path.join(process.cwd(), "public", existing.preview_image);
+    if (fs.existsSync(oldPreviewPath)) {
+      try { fs.unlinkSync(oldPreviewPath); } catch { /* ignore */ }
+    }
+  }
+
   db.prepare(
     "UPDATE templates SET title = ?, category_id = ?, tags = ?, preview_image = ? WHERE id = ?",
   ).run(
     title ?? existing.title,
-    categoryId ?? existing.category_id,
+    categoryId !== undefined ? categoryId : existing.category_id,
     JSON.stringify(tags ?? JSON.parse(existing.tags)),
     previewImage ?? existing.preview_image,
     id,
