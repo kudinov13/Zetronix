@@ -106,6 +106,42 @@ export function CasePage() {
         </div>
       )}
 
+      {caseData.problem && (
+        <div className="mt-10 max-w-3xl">
+          <h2 className="text-xl font-semibold">Проблема</h2>
+          <div className="mt-4 whitespace-pre-line text-base leading-relaxed text-foreground/90">
+            {caseData.problem}
+          </div>
+        </div>
+      )}
+
+      {caseData.solution && (
+        <div className="mt-10 max-w-3xl">
+          <h2 className="text-xl font-semibold">Решение</h2>
+          <div className="mt-4 whitespace-pre-line text-base leading-relaxed text-foreground/90">
+            {caseData.solution}
+          </div>
+        </div>
+      )}
+
+      {caseData.savings && (
+        <div className="mt-10 max-w-3xl">
+          <h2 className="text-xl font-semibold">Экономия</h2>
+          <div className="mt-4 whitespace-pre-line text-base leading-relaxed text-foreground/90">
+            {caseData.savings}
+          </div>
+        </div>
+      )}
+
+      {caseData.price && (
+        <div className="mt-10 max-w-3xl">
+          <h2 className="text-xl font-semibold">Цена</h2>
+          <div className="mt-4 whitespace-pre-line text-base leading-relaxed text-foreground/90">
+            {caseData.price}
+          </div>
+        </div>
+      )}
+
       {caseData.videoUrl && (
         <div className="mt-10 max-w-4xl">
           <h2 className="text-xl font-semibold">Видео демонстрация</h2>

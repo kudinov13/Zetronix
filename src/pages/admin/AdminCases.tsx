@@ -140,6 +140,10 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
   const [slug, setSlug] = useState(existing?.slug ?? "");
   const [excerpt, setExcerpt] = useState(existing?.excerpt ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
+  const [problem, setProblem] = useState(existing?.problem ?? "");
+  const [solution, setSolution] = useState(existing?.solution ?? "");
+  const [savings, setSavings] = useState(existing?.savings ?? "");
+  const [price, setPrice] = useState(existing?.price ?? "");
   const [tags, setTags] = useState(existing?.tags.join(", ") ?? "");
   const [previewImage, setPreviewImage] = useState(existing?.previewImage ?? "");
   const [videoUrl, setVideoUrl] = useState(existing?.videoUrl ?? "");
@@ -201,6 +205,10 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
           title: title.trim(),
           excerpt: excerpt.trim(),
           description: description.trim(),
+          problem: problem.trim(),
+          solution: solution.trim(),
+          savings: savings.trim(),
+          price: price.trim(),
           previewImage,
           videoUrl: videoUrl || null,
           tags: tagsArray,
@@ -212,6 +220,10 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
           title: title.trim(),
           excerpt: excerpt.trim(),
           description: description.trim(),
+          problem: problem.trim(),
+          solution: solution.trim(),
+          savings: savings.trim(),
+          price: price.trim(),
           previewImage,
           videoUrl: videoUrl || null,
           tags: tagsArray,
@@ -281,14 +293,62 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="case-desc" className="text-sm font-medium">Описание кейса</label>
+            <label htmlFor="case-desc" className="text-sm font-medium">Краткое описание кейса</label>
             <textarea
               id="case-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={8}
+              rows={3}
               className="rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
-              placeholder="Подробное описание: какие проблемы решает, как внедряли, результат..."
+              placeholder="Короткое описание для страницы кейса"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="case-problem" className="text-sm font-medium">Проблема</label>
+            <textarea
+              id="case-problem"
+              value={problem}
+              onChange={(e) => setProblem(e.target.value)}
+              rows={6}
+              className="rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+              placeholder="Какие проблемы были до внедрения решения..."
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="case-solution" className="text-sm font-medium">Решение</label>
+            <textarea
+              id="case-solution"
+              value={solution}
+              onChange={(e) => setSolution(e.target.value)}
+              rows={6}
+              className="rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+              placeholder="Как было решено проблему, что было внедрено..."
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="case-savings" className="text-sm font-medium">Экономия / Заработок</label>
+            <textarea
+              id="case-savings"
+              value={savings}
+              onChange={(e) => setSavings(e.target.value)}
+              rows={6}
+              className="rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+              placeholder="Сколько времени или денег сэкономлено, какой результат..."
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="case-price" className="text-sm font-medium">Цена</label>
+            <textarea
+              id="case-price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              rows={4}
+              className="rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
+              placeholder="Стоимость решения, варианты подписки..."
             />
           </div>
 

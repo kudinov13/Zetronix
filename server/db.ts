@@ -60,6 +60,16 @@ db.exec(`
   );
 `);
 
+/** Migrate: add new columns to cases if missing */
+const caseCols = db.prepare("PRAGMA table_info(cases)").all() as { name: string }[];
+const newCols = ["problem TEXT NOT NULL DEFAULT ''", "solution TEXT NOT NULL DEFAULT ''", "savings TEXT NOT NULL DEFAULT ''", "price TEXT NOT NULL DEFAULT ''"];
+for (const col of newCols) {
+  const colName = col.split(" ")[0];
+  if (!caseCols.some((c) => c.name === colName)) {
+    db.exec(`ALTER TABLE cases ADD COLUMN ${col}`);
+  }
+}
+
 /** Seed default categories if empty */
 const catCount = db.prepare("SELECT COUNT(*) as c FROM categories").get() as { c: number };
 if (catCount.c === 0) {

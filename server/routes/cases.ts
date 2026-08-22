@@ -39,6 +39,10 @@ interface CaseRow {
   title: string;
   excerpt: string;
   description: string;
+  problem: string;
+  solution: string;
+  savings: string;
+  price: string;
   preview_image: string;
   video_url: string | null;
   tags: string;
@@ -60,6 +64,10 @@ function mapRow(r: CaseRow) {
     title: r.title,
     excerpt: r.excerpt,
     description: r.description,
+    problem: r.problem,
+    solution: r.solution,
+    savings: r.savings,
+    price: r.price,
     previewImage: r.preview_image,
     videoUrl: r.video_url,
     tags: JSON.parse(r.tags) as string[],
@@ -88,11 +96,15 @@ router.get("/:slug", (req: Request, res: Response) => {
 
 /** POST /api/cases — создать (админ) */
 router.post("/", requireAuth, (req: AuthedRequest, res: Response) => {
-  const { slug, title, excerpt, description, previewImage, videoUrl, tags, sortOrder } = req.body as {
+  const { slug, title, excerpt, description, problem, solution, savings, price, previewImage, videoUrl, tags, sortOrder } = req.body as {
     slug?: string;
     title?: string;
     excerpt?: string;
     description?: string;
+    problem?: string;
+    solution?: string;
+    savings?: string;
+    price?: string;
     previewImage?: string;
     videoUrl?: string;
     tags?: string[];
@@ -107,13 +119,17 @@ router.post("/", requireAuth, (req: AuthedRequest, res: Response) => {
   try {
     const info = db
       .prepare(
-        "INSERT INTO cases (slug, title, excerpt, description, preview_image, video_url, tags, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO cases (slug, title, excerpt, description, problem, solution, savings, price, preview_image, video_url, tags, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       )
       .run(
         slug,
         title,
         excerpt ?? "",
         description ?? "",
+        problem ?? "",
+        solution ?? "",
+        savings ?? "",
+        price ?? "",
         previewImage,
         videoUrl ?? null,
         JSON.stringify(tags ?? []),
@@ -128,10 +144,14 @@ router.post("/", requireAuth, (req: AuthedRequest, res: Response) => {
 /** PUT /api/cases/:id — обновить (админ) */
 router.put("/:id", requireAuth, (req: AuthedRequest, res: Response) => {
   const id = Number(req.params.id);
-  const { title, excerpt, description, previewImage, videoUrl, tags, sortOrder, slug } = req.body as {
+  const { title, excerpt, description, problem, solution, savings, price, previewImage, videoUrl, tags, sortOrder, slug } = req.body as {
     title?: string;
     excerpt?: string;
     description?: string;
+    problem?: string;
+    solution?: string;
+    savings?: string;
+    price?: string;
     previewImage?: string;
     videoUrl?: string;
     tags?: string[];
@@ -147,12 +167,16 @@ router.put("/:id", requireAuth, (req: AuthedRequest, res: Response) => {
 
   try {
     db.prepare(
-      "UPDATE cases SET slug = ?, title = ?, excerpt = ?, description = ?, preview_image = ?, video_url = ?, tags = ?, sort_order = ? WHERE id = ?",
+      "UPDATE cases SET slug = ?, title = ?, excerpt = ?, description = ?, problem = ?, solution = ?, savings = ?, price = ?, preview_image = ?, video_url = ?, tags = ?, sort_order = ? WHERE id = ?",
     ).run(
       slug ?? existing.slug,
       title ?? existing.title,
       excerpt ?? existing.excerpt,
       description ?? existing.description,
+      problem ?? existing.problem,
+      solution ?? existing.solution,
+      savings ?? existing.savings,
+      price ?? existing.price,
       previewImage ?? existing.preview_image,
       videoUrl !== undefined ? videoUrl : existing.video_url,
       JSON.stringify(tags ?? JSON.parse(existing.tags)),

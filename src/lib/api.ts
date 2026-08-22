@@ -137,6 +137,10 @@ export const api = {
     title: string;
     excerpt?: string;
     description?: string;
+    problem?: string;
+    solution?: string;
+    savings?: string;
+    price?: string;
     previewImage: string;
     videoUrl?: string | null;
     tags?: string[];
@@ -154,6 +158,10 @@ export const api = {
       title?: string;
       excerpt?: string;
       description?: string;
+      problem?: string;
+      solution?: string;
+      savings?: string;
+      price?: string;
       previewImage?: string;
       videoUrl?: string | null;
       tags?: string[];
