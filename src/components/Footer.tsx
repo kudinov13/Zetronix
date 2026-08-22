@@ -79,7 +79,7 @@ export function Footer() {
           <p>© {new Date().getFullYear()} Студия «Zetronix»</p>
           <p>Сделано в нашей студии, на наших же шаблонах</p>
           <Link
-            to="/admin"
+            to="/admin/login"
             aria-label="Админ-панель"
             className="size-2.5 rounded-full bg-muted/40 transition-colors duration-200 hover:bg-accent"
           />
