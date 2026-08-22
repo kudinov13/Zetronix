@@ -18,7 +18,7 @@ const contacts = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border" aria-label="Подвал сайта">
+    <footer className="relative z-10 border-t border-border" aria-label="Подвал сайта">
       <div className="container-site py-16">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
           <div>
