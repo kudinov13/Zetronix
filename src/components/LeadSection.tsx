@@ -28,6 +28,7 @@ export function LeadSection() {
   const [comment, setComment] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     api.listTemplates().then(setTemplates).catch(() => {});
@@ -55,12 +56,25 @@ export function LeadSection() {
     return next;
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const next = validate();
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    setSent(true);
+    setSubmitting(true);
+    try {
+      await api.createLead({
+        name: name.trim(),
+        contact: contact.trim(),
+        templateSlug: templateSlug === NO_TEMPLATE ? null : templateSlug,
+        comment: comment.trim(),
+      });
+      setSent(true);
+    } catch {
+      setErrors({ contact: "Не удалось отправить заявку. Попробуйте ещё раз или напишите нам в Telegram." });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -204,9 +218,10 @@ export function LeadSection() {
 
                   <button
                     type="submit"
-                    className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full bg-accent px-8 py-3.5 text-base font-medium text-accent-foreground transition-[filter,transform] duration-200 hover:brightness-110 active:scale-[0.98]"
+                    disabled={submitting}
+                    className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full bg-accent px-8 py-3.5 text-base font-medium text-accent-foreground transition-[filter,transform] duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
                   >
-                    Отправить заявку
+                    {submitting ? "Отправляем…" : "Отправить заявку"}
                   </button>
                   <p className="text-xs leading-relaxed text-muted">
                     Нажимая кнопку, вы соглашаетесь с политикой

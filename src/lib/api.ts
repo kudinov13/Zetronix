@@ -1,4 +1,4 @@
-import type { Category, TemplateDTO, CaseDTO, CertificateDTO } from "./types";
+import type { Category, TemplateDTO, CaseDTO, CertificateDTO, LeadDTO } from "./types";
 
 const TOKEN_KEY = "admin_token";
 
@@ -194,6 +194,44 @@ export const api = {
     });
   },
 
+  uploadCaseVideoWithProgress: (
+    file: File,
+    onProgress: (percent: number) => void,
+  ) => {
+    const fd = new FormData();
+    fd.append("video", file);
+    const token = getToken();
+    return new Promise<{ path: string }>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      });
+      xhr.addEventListener("load", () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            reject(new Error("Ошибка парсинга ответа"));
+          }
+        } else {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            reject(new Error(data.error || `HTTP ${xhr.status}`));
+          } catch {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
+        }
+      });
+      xhr.addEventListener("error", () => reject(new Error("Ошибка сети")));
+      xhr.addEventListener("abort", () => reject(new Error("Загрузка отменена")));
+      xhr.open("POST", "/api/cases/upload-video");
+      if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      xhr.send(fd);
+    });
+  },
+
   /* ── Certificates ── */
 
   listCertificates: () => request<CertificateDTO[]>("/api/certificates"),
@@ -236,4 +274,28 @@ export const api = {
       body: fd,
     });
   },
+
+  /* ── Leads ── */
+
+  listLeads: () => request<LeadDTO[]>("/api/leads"),
+
+  createLead: (data: {
+    name: string;
+    contact: string;
+    templateSlug?: string | null;
+    comment?: string;
+  }) =>
+    request<{ id: number; ok: boolean }>("/api/leads", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateLeadStatus: (id: number, status: string) =>
+    request<{ ok: boolean }>(`/api/leads/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    }),
+
+  deleteLead: (id: number) =>
+    request<{ ok: boolean }>(`/api/leads/${id}`, { method: "DELETE" }),
 };

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Send } from "lucide-react";
+import { Mail, Send, Phone } from "lucide-react";
 
 const contacts = [
   {
@@ -13,6 +13,12 @@ const contacts = [
     label: "Почта",
     value: "privet@zetronix.ru",
     href: "mailto:privet@zetronix.ru",
+  },
+  {
+    icon: Phone,
+    label: "Телефон",
+    value: "8 (909) 505-34-44",
+    href: "tel:+79095053444",
   },
 ];
 
@@ -77,7 +83,7 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="container-site flex flex-col items-center justify-between gap-2 py-6 text-xs text-muted sm:flex-row">
           <p>© {new Date().getFullYear()} Студия «Zetronix»</p>
-          <p>Сделано в нашей студии, на наших же шаблонах</p>
+          <p>По всем вопросам: 8 (909) 505-34-44</p>
           <Link
             to="/admin/login"
             aria-label="Админ-панель"

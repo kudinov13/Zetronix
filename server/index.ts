@@ -7,6 +7,7 @@ import categoriesRoutes from "./routes/categories.js";
 import templatesRoutes from "./routes/templates.js";
 import casesRoutes from "./routes/cases.js";
 import certificatesRoutes from "./routes/certificates.js";
+import leadsRoutes from "./routes/leads.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
@@ -20,6 +21,7 @@ app.use("/api/categories", categoriesRoutes);
 app.use("/api/templates", templatesRoutes);
 app.use("/api/cases", casesRoutes);
 app.use("/api/certificates", certificatesRoutes);
+app.use("/api/leads", leadsRoutes);
 
 // Serve extracted template files
 const TEMPLATES_DIR = path.resolve(process.cwd(), "public", "templates");

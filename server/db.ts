@@ -58,6 +58,16 @@ db.exec(`
     sort_order  INTEGER NOT NULL DEFAULT 0,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS leads (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT NOT NULL,
+    contact     TEXT NOT NULL,
+    template_slug TEXT,
+    comment     TEXT NOT NULL DEFAULT '',
+    status      TEXT NOT NULL DEFAULT 'new',
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 /** Migrate: add new columns to cases if missing */

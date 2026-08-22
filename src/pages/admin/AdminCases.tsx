@@ -150,6 +150,7 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
   const [sortOrder, setSortOrder] = useState(existing?.sortOrder ?? 0);
   const [uploadingPreview, setUploadingPreview] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -176,13 +177,17 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingVideo(true);
+    setVideoProgress(0);
     try {
-      const res = await api.uploadCaseVideo(file);
+      const res = await api.uploadCaseVideoWithProgress(file, (percent) => {
+        setVideoProgress(percent);
+      });
       setVideoUrl(res.path);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка загрузки видео");
     } finally {
       setUploadingVideo(false);
+      setVideoProgress(0);
     }
   };
 
@@ -445,7 +450,7 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
                 disabled={uploadingVideo}
                 className="hidden"
               />
-              {videoUrl && (
+              {videoUrl && !uploadingVideo && (
                 <button
                   type="button"
                   onClick={() => setVideoUrl("")}
@@ -455,6 +460,17 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
                 </button>
               )}
             </div>
+            {uploadingVideo && (
+              <div className="mt-2 w-full">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
+                  <div
+                    className="h-full rounded-full bg-accent transition-all duration-200"
+                    style={{ width: `${videoProgress}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-muted">Загрузка: {videoProgress}%</p>
+              </div>
+            )}
           </div>
 
           {error && (

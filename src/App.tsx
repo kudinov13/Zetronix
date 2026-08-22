@@ -13,6 +13,7 @@ import { AdminTemplates } from "@/pages/admin/AdminTemplates";
 import { AdminCategories } from "@/pages/admin/AdminCategories";
 import { AdminCases } from "@/pages/admin/AdminCases";
 import { AdminCertificates } from "@/pages/admin/AdminCertificates";
+import { AdminLeads } from "@/pages/admin/AdminLeads";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 function ScrollToTop() {
@@ -46,6 +47,7 @@ export function App() {
             <Route path="categories" element={<AdminCategories />} />
             <Route path="cases" element={<AdminCases />} />
             <Route path="certificates" element={<AdminCertificates />} />
+            <Route path="leads" element={<AdminLeads />} />
           </Route>
           <Route path="*" element={<HomePage />} />
         </Routes>

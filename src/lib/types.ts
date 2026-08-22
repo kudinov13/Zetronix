@@ -39,3 +39,13 @@ export interface CertificateDTO {
   sortOrder: number;
   createdAt: string;
 }
+
+export interface LeadDTO {
+  id: number;
+  name: string;
+  contact: string;
+  templateSlug: string | null;
+  comment: string;
+  status: string;
+  createdAt: string;
+}

@@ -1,11 +1,12 @@
 import { type ReactNode } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutGrid, FolderTree, FileStack, Briefcase, Award, LogOut, ExternalLink } from "lucide-react";
+import { LayoutGrid, FolderTree, FileStack, Briefcase, Award, LogOut, ExternalLink, Inbox } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/admin", label: "Обзор", icon: LayoutGrid, end: true },
+  { to: "/admin/leads", label: "Заявки", icon: Inbox, end: false },
   { to: "/admin/templates", label: "Шаблоны", icon: FileStack, end: false },
   { to: "/admin/categories", label: "Категории", icon: FolderTree, end: false },
   { to: "/admin/cases", label: "Кейсы", icon: Briefcase, end: false },
