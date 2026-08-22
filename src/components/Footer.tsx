@@ -81,8 +81,10 @@ export function Footer() {
           <Link
             to="/admin/login"
             aria-label="Админ-панель"
-            className="size-2.5 rounded-full bg-muted/40 transition-colors duration-200 hover:bg-accent"
-          />
+            className="flex size-6 items-center justify-center rounded-full transition-colors duration-200 hover:bg-accent/20"
+          >
+            <span className="size-2 rounded-full bg-muted/50 transition-colors duration-200 hover:bg-accent" />
+          </Link>
         </div>
       </div>
     </footer>
