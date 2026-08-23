@@ -9,6 +9,8 @@ export function AdminCategories() {
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const refresh = useCallback(async () => {
     const c = await api.listCategories();
@@ -22,13 +24,22 @@ export function AdminCategories() {
 
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
-    if (!newName.trim()) return;
+    setError("");
+    if (!newName.trim()) {
+      setError("Введите название категории");
+      return;
+    }
+    setSubmitting(true);
     try {
       await api.createCategory(newName.trim());
       setNewName("");
       refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Ошибка");
+      const msg = err instanceof Error ? err.message : "Ошибка";
+      setError(msg);
+      console.error("createCategory error:", err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -65,12 +76,19 @@ export function AdminCategories() {
         />
         <button
           type="submit"
-          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-[filter] duration-200 hover:brightness-110"
+          disabled={submitting}
+          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground transition-[filter] duration-200 hover:brightness-110 disabled:opacity-50"
         >
           <Plus aria-hidden className="size-4" />
-          Добавить
+          {submitting ? "Добавление…" : "Добавить"}
         </button>
       </form>
+
+      {error && (
+        <p role="alert" className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500">
+          {error}
+        </p>
+      )}
 
       <ul className="mt-6 flex flex-col gap-2">
         {categories.map((cat) => (
