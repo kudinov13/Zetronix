@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import https from "node:https";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import db from "../db.js";
 import { requireAuth, AuthedRequest } from "../middleware.js";
@@ -29,21 +30,45 @@ async function sendTelegramNotification(lead: {
     templateLine +
     commentLine;
 
-  try {
-    await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: TG_CHAT_ID,
-        text,
-        parse_mode: "HTML",
-      }),
-      // @ts-expect-error -- Node 18+ supports agent via dispatcher
-      agent: tgAgent,
+  const payload = JSON.stringify({
+    chat_id: TG_CHAT_ID,
+    text,
+    parse_mode: "HTML",
+  });
+
+  const options: https.RequestOptions = {
+    hostname: "api.telegram.org",
+    path: `/bot${TG_BOT_TOKEN}/sendMessage`,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(payload),
+    },
+    agent: tgAgent,
+  };
+
+  return new Promise<void>((resolve) => {
+    const req = https.request(options, (res) => {
+      let body = "";
+      res.on("data", (chunk) => (body += chunk));
+      res.on("end", () => {
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+          console.log("[leads] Telegram notification sent for lead #" + lead.id);
+        } else {
+          console.error("[leads] Telegram API error:", res.statusCode, body);
+        }
+        resolve();
+      });
     });
-  } catch (err) {
-    console.error("[leads] Telegram notification failed:", err);
-  }
+
+    req.on("error", (err) => {
+      console.error("[leads] Telegram notification failed:", err.message);
+      resolve();
+    });
+
+    req.write(payload);
+    req.end();
+  });
 }
 
 interface LeadRow {
