@@ -33,7 +33,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
             height={600}
             loading="lazy"
             decoding="async"
-            className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+            className="size-full object-contain object-top transition-transform duration-500 ease-out group-hover:scale-[1.03]"
           />
           <div className="absolute inset-0 flex items-center justify-center bg-background/45 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
             <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground">

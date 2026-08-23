@@ -67,7 +67,7 @@ export function AdminTemplates() {
                 <img
                   src={t.previewImage}
                   alt={t.title}
-                  className="size-full object-cover"
+                  className="size-full object-contain object-top"
                 />
               </div>
               <div className="p-4">
