@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Send, Phone } from "lucide-react";
+import { Send, Phone } from "lucide-react";
 
 const contacts = [
   {
@@ -7,12 +7,6 @@ const contacts = [
     label: "Telegram",
     value: "@lhdevop",
     href: "https://t.me/lhdevop",
-  },
-  {
-    icon: Mail,
-    label: "Почта",
-    value: "privet@zetronix.ru",
-    href: "mailto:privet@zetronix.ru",
   },
   {
     icon: Phone,
