@@ -7,7 +7,7 @@ import { requireAuth, AuthedRequest } from "../middleware.js";
 const router = Router();
 
 const TG_BOT_TOKEN = "8687742873:AAGU97-qvPs4CWTEXcBhL5nGFTHJXEYjfT8";
-const TG_CHAT_ID = "5486997702";
+const TG_CHAT_ID = "-5486997702";
 const TG_PROXY = "http://user425172:apocw5@93.127.155.28:7165";
 const tgAgent = new HttpsProxyAgent(TG_PROXY);
 
