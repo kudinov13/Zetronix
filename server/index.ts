@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import path from "node:path";
 import fs from "node:fs";
 import authRoutes from "./routes/auth.js";
@@ -12,8 +14,32 @@ import leadsRoutes from "./routes/leads.js";
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
 
-app.use(cors());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+app.use(cors({ origin: true }));
 app.use(express.json({ limit: "2mb" }));
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Слишком много запросов, попробуйте позже" },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Слишком много попыток входа, попробуйте через 15 минут" },
+});
+
+app.use("/api/", apiLimiter);
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/setup", authLimiter);
 
 // API routes
 app.use("/api/auth", authRoutes);

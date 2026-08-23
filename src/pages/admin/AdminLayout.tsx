@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { LayoutGrid, FolderTree, FileStack, Briefcase, Award, LogOut, ExternalLink, Inbox } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -26,8 +26,7 @@ export function AdminLayout() {
   }
 
   if (!username) {
-    navigate("/admin/login");
-    return null;
+    return <Navigate to="/admin/login" replace />;
   }
 
   const handleLogout = () => {
