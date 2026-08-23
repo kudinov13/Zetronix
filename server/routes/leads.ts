@@ -4,6 +4,43 @@ import { requireAuth, AuthedRequest } from "../middleware.js";
 
 const router = Router();
 
+const TG_BOT_TOKEN = "8687742873:AAGU97-qvPs4CWTEXcBhL5nGFTHJXEYjfT8";
+const TG_CHAT_ID = "5486997702";
+
+async function sendTelegramNotification(lead: {
+  id: number;
+  name: string;
+  contact: string;
+  templateSlug: string | null;
+  comment: string;
+}) {
+  const templateLine = lead.templateSlug
+    ? `\n📦 Шаблон: ${lead.templateSlug}`
+    : "";
+  const commentLine = lead.comment ? `\n💬 ${lead.comment}` : "";
+
+  const text =
+    `🆕 Новая заявка #${lead.id}\n` +
+    `👤 Имя: ${lead.name}\n` +
+    `📞 Контакт: ${lead.contact}` +
+    templateLine +
+    commentLine;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TG_CHAT_ID,
+        text,
+        parse_mode: "HTML",
+      }),
+    });
+  } catch (err) {
+    console.error("[leads] Telegram notification failed:", err);
+  }
+}
+
 interface LeadRow {
   id: number;
   name: string;
@@ -54,7 +91,17 @@ router.post("/", (req: Request, res: Response) => {
     )
     .run(name, contact, templateSlug ?? null, comment ?? "");
 
-  res.json({ id: info.lastInsertRowid, ok: true });
+  const leadId = info.lastInsertRowid as number;
+
+  sendTelegramNotification({
+    id: leadId,
+    name,
+    contact,
+    templateSlug: templateSlug ?? null,
+    comment: comment ?? "",
+  });
+
+  res.json({ id: leadId, ok: true });
 });
 
 /** PUT /api/leads/:id — обновить статус (админ) */
