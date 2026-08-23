@@ -22,6 +22,7 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "framer-motion": "^11.11.17",
+    "https-proxy-agent": "^9.1.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.460.0",
     "multer": "^2.2.0",
