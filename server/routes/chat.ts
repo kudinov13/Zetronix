@@ -279,18 +279,33 @@ router.post("/", async (req: Request, res: Response) => {
         .map((m) => m.content.toLowerCase());
 
       const contactPrefs: string[] = [];
-      if (userMessages.some((m) => m.includes("макс") || m.includes("max")))
-        contactPrefs.push("написать в мессенджер Max");
-      if (userMessages.some((m) => m.includes("telegram") || m.includes("телеграм") || m.includes("тг")))
-        contactPrefs.push("написать в Telegram");
-      if (userMessages.some((m) => m.includes("позвонит")))
-        contactPrefs.push("позвонить");
-      if (userMessages.some((m) => m.includes("whatsapp") || m.includes("вацап") || m.includes("вотсап")))
-        contactPrefs.push("написать в WhatsApp");
+      const prefKeywords: { pref: string; keywords: string[] }[] = [
+        { pref: "написать в мессенджер Max", keywords: ["макс", "max"] },
+        { pref: "написать в Telegram", keywords: ["telegram", "телеграм", "тг"] },
+        { pref: "позвонить", keywords: ["позвонит"] },
+        { pref: "написать в WhatsApp", keywords: ["whatsapp", "вацап", "вотсап"] },
+      ];
+
+      for (const { pref, keywords } of prefKeywords) {
+        if (userMessages.some((m) => keywords.some((k) => m.includes(k)))) {
+          contactPrefs.push(pref);
+        }
+      }
 
       let finalTask = leadData.task;
-      if (contactPrefs.length > 0 && !contactPrefs.some((p) => finalTask.toLowerCase().includes(p.toLowerCase().split(" ")[1]))) {
-        finalTask = finalTask + ". Просит: " + contactPrefs.join(", ");
+      if (contactPrefs.length > 0) {
+        const taskLower = finalTask.toLowerCase();
+        const missing = contactPrefs.filter((p) => {
+          const prefLower = p.toLowerCase();
+          if (prefLower.includes("max")) return !taskLower.includes("max") && !taskLower.includes("макс");
+          if (prefLower.includes("telegram")) return !taskLower.includes("telegram") && !taskLower.includes("телеграм");
+          if (prefLower.includes("whatsapp")) return !taskLower.includes("whatsapp") && !taskLower.includes("вацап");
+          if (prefLower.includes("позвонить")) return !taskLower.includes("позвонит");
+          return true;
+        });
+        if (missing.length > 0) {
+          finalTask = finalTask + ". Просит: " + missing.join(", ");
+        }
       }
 
       const info = db
