@@ -4,12 +4,12 @@ import crypto from "node:crypto";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import db from "../db.js";
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const router = Router();
 
 const GIGACHAT_AUTH_KEY =
   "MDFhMDA0ZGItNDVmOC03M2IwLWEyYTctMjM5NTkxZTE1MWJlOmIwOWRjYjY3LTZjOWQtNDI1YS1iNTIzLWM5N2U0ZGI1ZDgxMw==";
-const GIGACHAT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
-const GIGACHAT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions";
 
 const TG_BOT_TOKEN = "8687742873:AAGU97-qvPs4CWTEXcBhL5nGFTHJXEYjfT8";
 const TG_CHAT_ID = "-5486997702";
@@ -25,50 +25,29 @@ async function getGigaChatToken(): Promise<string> {
     return cachedToken;
   }
 
-  return new Promise<string>((resolve, reject) => {
-    const payload =
-      "scope=GIGACHAT_API_PERS";
-    const options: https.RequestOptions = {
-      hostname: "ngw.devices.sberbank.ru",
-      path: "/api/v2/oauth",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Content-Length": Buffer.byteLength(payload),
-        Authorization: `Basic ${GIGACHAT_AUTH_KEY}`,
-        RqUID: crypto.randomUUID(),
-      },
-      rejectUnauthorized: false,
-    };
+  console.log("[chat] Requesting GigaChat token...");
 
-    const req = https.request(options, (res) => {
-      let body = "";
-      res.on("data", (chunk) => (body += chunk));
-      res.on("end", () => {
-        try {
-          const data = JSON.parse(body);
-          if (data.access_token) {
-            cachedToken = data.access_token;
-            tokenExpiresAt = now + (data.expires_in ?? 1800) * 1000;
-            console.log("[chat] GigaChat token acquired, expires in", data.expires_in, "s");
-            resolve(data.access_token);
-          } else {
-            console.error("[chat] GigaChat auth error:", body);
-            reject(new Error("GigaChat auth failed: " + body));
-          }
-        } catch (err) {
-          reject(new Error("GigaChat auth parse error: " + (err as Error).message));
-        }
-      });
-    });
-
-    req.on("error", (err) => {
-      console.error("[chat] GigaChat auth request error:", err.message);
-      reject(new Error("GigaChat auth request error: " + err.message));
-    });
-    req.write(payload);
-    req.end();
+  const resp = await fetch("https://ngw.devices.sberbank.ru:9443/api/v2/oauth", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${GIGACHAT_AUTH_KEY}`,
+      RqUID: crypto.randomUUID(),
+    },
+    body: "scope=GIGACHAT_API_PERS",
   });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    console.error("[chat] GigaChat auth error:", resp.status, text);
+    throw new Error(`GigaChat auth failed: ${resp.status}`);
+  }
+
+  const data = await resp.json() as { access_token: string; expires_at: number };
+  cachedToken = data.access_token;
+  tokenExpiresAt = data.expires_at;
+  console.log("[chat] GigaChat token acquired, expires at", new Date(data.expires_at).toISOString());
+  return data.access_token;
 }
 
 interface ChatMessage {
@@ -182,52 +161,34 @@ function extractLeadData(conversation: ChatMessage[]): {
 async function callGigaChat(messages: ChatMessage[]): Promise<string> {
   const token = await getGigaChatToken();
 
-  return new Promise<string>((resolve, reject) => {
-    const payload = JSON.stringify({
+  console.log("[chat] Calling GigaChat completions...");
+
+  const resp = await fetch("https://gigachat.devices.sberbank.ru/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
       model: "GigaChat",
       messages,
       temperature: 0.7,
       max_tokens: 300,
-    });
-
-    const options: https.RequestOptions = {
-      hostname: "gigachat.devices.sberbank.ru",
-      path: "/api/v1/chat/completions",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Content-Length": Buffer.byteLength(payload),
-        Authorization: `Bearer ${token}`,
-      },
-      rejectUnauthorized: false,
-    };
-
-    const req = https.request(options, (res) => {
-      let body = "";
-      res.on("data", (chunk) => (body += chunk));
-      res.on("end", () => {
-        try {
-          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-            const data = JSON.parse(body);
-            const content = data.choices?.[0]?.message?.content ?? "";
-            resolve(content);
-          } else {
-            console.error("[chat] GigaChat API error:", res.statusCode, body);
-            reject(new Error("GigaChat API error: " + res.statusCode));
-          }
-        } catch (err) {
-          reject(new Error("GigaChat parse error: " + (err as Error).message));
-        }
-      });
-    });
-
-    req.on("error", (err) => {
-      console.error("[chat] GigaChat request error:", err.message);
-      reject(new Error("GigaChat request error: " + err.message));
-    });
-    req.write(payload);
-    req.end();
+    }),
   });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    console.error("[chat] GigaChat API error:", resp.status, text);
+    throw new Error(`GigaChat API error: ${resp.status}`);
+  }
+
+  const data = await resp.json() as {
+    choices?: { message?: { content?: string } }[];
+  };
+  const content = data.choices?.[0]?.message?.content ?? "";
+  console.log("[chat] GigaChat reply:", content.slice(0, 100));
+  return content;
 }
 
 router.post("/", async (req: Request, res: Response) => {
