@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "@fontsource-variable/onest";
-@import "@fontsource-variable/unbounded";
+@import "@fontsource-variable/onest/cyrillic.css";
+@import "@fontsource-variable/unbounded/cyrillic.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

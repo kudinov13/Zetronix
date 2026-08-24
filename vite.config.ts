@@ -9,6 +9,7 @@ export default defineConfig({
     alias: { "@": path.resolve(__dirname, "src") },
   },
   build: {
+    modulePreload: false,
     rollupOptions: {
       output: {
         manualChunks: {
