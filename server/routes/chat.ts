@@ -274,11 +274,30 @@ router.post("/", async (req: Request, res: Response) => {
 
     const leadData = extractLeadFromReply(reply);
     if (leadData && !session.leadCreated) {
+      const userMessages = session.messages
+        .filter((m) => m.role === "user")
+        .map((m) => m.content.toLowerCase());
+
+      const contactPrefs: string[] = [];
+      if (userMessages.some((m) => m.includes("макс") || m.includes("max")))
+        contactPrefs.push("написать в мессенджер Max");
+      if (userMessages.some((m) => m.includes("telegram") || m.includes("телеграм") || m.includes("тг")))
+        contactPrefs.push("написать в Telegram");
+      if (userMessages.some((m) => m.includes("позвонит")))
+        contactPrefs.push("позвонить");
+      if (userMessages.some((m) => m.includes("whatsapp") || m.includes("вацап") || m.includes("вотсап")))
+        contactPrefs.push("написать в WhatsApp");
+
+      let finalTask = leadData.task;
+      if (contactPrefs.length > 0 && !contactPrefs.some((p) => finalTask.toLowerCase().includes(p.toLowerCase().split(" ")[1]))) {
+        finalTask = finalTask + ". Просит: " + contactPrefs.join(", ");
+      }
+
       const info = db
         .prepare(
           "INSERT INTO leads (name, contact, template_slug, comment) VALUES (?, ?, ?, ?)",
         )
-        .run(leadData.name, leadData.contact, null, leadData.task);
+        .run(leadData.name, leadData.contact, null, finalTask);
 
       const leadId = info.lastInsertRowid as number;
       session.leadCreated = true;
@@ -288,7 +307,7 @@ router.post("/", async (req: Request, res: Response) => {
         id: leadId,
         name: leadData.name,
         contact: leadData.contact,
-        comment: leadData.task,
+        comment: finalTask,
       }).catch((e) => logToFile("[chat] Telegram send error: " + e.message));
     }
 
