@@ -1,11 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValueEvent,
-  useScroll,
-} from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,9 +25,13 @@ export function Header() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { scrollY } = useScroll();
 
-  useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 24));
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleNav = (item: { id: string; route?: string }) => {
     setMenuOpen(false);
@@ -120,41 +118,35 @@ export function Header() {
         </div>
       </header>
 
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.nav
-            aria-label="Мобильное меню"
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 24 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-y-0 right-0 z-30 w-72 border-l border-border bg-background pt-20 lg:hidden"
-          >
-            <ul className="flex flex-col gap-1 px-4">
-              {navItems.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleNav(item)}
-                    className="min-h-11 w-full cursor-pointer rounded-xl px-4 py-3 text-left text-base text-foreground transition-colors duration-200 hover:bg-surface"
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-              <li className="mt-3 px-4">
+      {menuOpen && (
+        <nav
+          aria-label="Мобильное меню"
+          className="fixed inset-y-0 right-0 z-30 w-72 border-l border-border bg-background pt-20 lg:hidden mobile-menu-enter"
+        >
+          <ul className="flex flex-col gap-1 px-4">
+            {navItems.map((item) => (
+              <li key={item.id}>
                 <button
                   type="button"
-                  onClick={() => handleNav({ id: "lead" })}
-                  className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground"
+                  onClick={() => handleNav(item)}
+                  className="min-h-11 w-full cursor-pointer rounded-xl px-4 py-3 text-left text-base text-foreground transition-colors duration-200 hover:bg-surface"
                 >
-                  Обсудить проект
+                  {item.label}
                 </button>
               </li>
-            </ul>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+            ))}
+            <li className="mt-3 px-4">
+              <button
+                type="button"
+                onClick={() => handleNav({ id: "lead" })}
+                className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground"
+              >
+                Обсудить проект
+              </button>
+            </li>
+          </ul>
+        </nav>
+      )}
     </>
   );
 }
