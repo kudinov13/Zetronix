@@ -1,10 +1,16 @@
 import { Router, Request, Response } from "express";
 import https from "node:https";
 import crypto from "node:crypto";
+import fs from "node:fs";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import db from "../db.js";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+function logToFile(msg: string) {
+  const line = `[${new Date().toISOString()}] ${msg}\n`;
+  fs.appendFileSync("/var/www/zetronix/chat.log", line);
+}
 
 const router = Router();
 
@@ -160,16 +166,16 @@ function sendTelegramNotification(lead: {
       res.on("data", (chunk) => (body += chunk));
       res.on("end", () => {
         if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-          console.log("[chat] Telegram notification sent for AI lead #" + lead.id);
+          logToFile("[chat] Telegram notification sent for AI lead #" + lead.id);
         } else {
-          console.error("[chat] Telegram API error:", res.statusCode, body);
+          logToFile("[chat] Telegram API error: " + res.statusCode + " " + body);
         }
         resolve();
       });
     });
 
     req.on("error", (err) => {
-      console.error("[chat] Telegram notification failed:", err.message);
+      logToFile("[chat] Telegram notification failed: " + err.message);
       resolve();
     });
 
@@ -260,6 +266,7 @@ router.post("/", async (req: Request, res: Response) => {
   try {
     const reply = await callGigaChat(apiMessages);
     session.messages.push({ role: "assistant", content: reply });
+    logToFile("[chat] AI reply: " + reply.slice(0, 200));
 
     let leadCreated = false;
 
@@ -280,7 +287,7 @@ router.post("/", async (req: Request, res: Response) => {
         name: leadData.name,
         contact: leadData.contact,
         comment: leadData.task,
-      });
+      }).catch((e) => logToFile("[chat] Telegram send error: " + e.message));
     }
 
     const cleanReply = reply.replace(/\[LEAD\][\s\S]*?\[\/LEAD\]/, "").trim();
