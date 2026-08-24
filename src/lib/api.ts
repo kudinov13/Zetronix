@@ -298,4 +298,12 @@ export const api = {
 
   deleteLead: (id: number) =>
     request<{ ok: boolean }>(`/api/leads/${id}`, { method: "DELETE" }),
+
+  /* ── Chat (AI support) ── */
+
+  chat: (message: string, sessionId?: string) =>
+    request<{ reply: string; sessionId: string; leadCreated: boolean }>("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ message, sessionId }),
+    }),
 };

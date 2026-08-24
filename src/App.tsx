@@ -15,6 +15,7 @@ import { AdminCases } from "@/pages/admin/AdminCases";
 import { AdminCertificates } from "@/pages/admin/AdminCertificates";
 import { AdminLeads } from "@/pages/admin/AdminLeads";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { ChatWidget } from "@/components/ChatWidget";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -53,6 +54,7 @@ export function App() {
         </Routes>
       </main>
       {!isViewer && !isAdmin && <Footer />}
+      {!isAdmin && <ChatWidget />}
     </>
   );
 }
