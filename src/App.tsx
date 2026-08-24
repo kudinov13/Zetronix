@@ -1,22 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { HomePage } from "@/pages/HomePage";
-import { TemplatePage } from "@/pages/TemplatePage";
-import { CasesPage } from "@/pages/CasesPage";
-import { CasePage } from "@/pages/CasePage";
-import { AdminLogin } from "@/pages/admin/AdminLogin";
-import { AdminLayout } from "@/pages/admin/AdminLayout";
-import { AdminDashboard } from "@/pages/admin/AdminDashboard";
-import { AdminTemplates } from "@/pages/admin/AdminTemplates";
-import { AdminCategories } from "@/pages/admin/AdminCategories";
-import { AdminCases } from "@/pages/admin/AdminCases";
-import { AdminCertificates } from "@/pages/admin/AdminCertificates";
-import { AdminLeads } from "@/pages/admin/AdminLeads";
-import { PrivacyPage } from "@/pages/PrivacyPage";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { ChatWidget } from "@/components/ChatWidget";
+
+const TemplatePage = lazy(() => import("@/pages/TemplatePage").then(m => ({ default: m.TemplatePage })));
+const CasesPage = lazy(() => import("@/pages/CasesPage").then(m => ({ default: m.CasesPage })));
+const CasePage = lazy(() => import("@/pages/CasePage").then(m => ({ default: m.CasePage })));
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
+const AdminLogin = lazy(() => import("@/pages/admin/AdminLogin").then(m => ({ default: m.AdminLogin })));
+const AdminLayout = lazy(() => import("@/pages/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
+const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
+const AdminTemplates = lazy(() => import("@/pages/admin/AdminTemplates").then(m => ({ default: m.AdminTemplates })));
+const AdminCategories = lazy(() => import("@/pages/admin/AdminCategories").then(m => ({ default: m.AdminCategories })));
+const AdminCases = lazy(() => import("@/pages/admin/AdminCases").then(m => ({ default: m.AdminCases })));
+const AdminCertificates = lazy(() => import("@/pages/admin/AdminCertificates").then(m => ({ default: m.AdminCertificates })));
+const AdminLeads = lazy(() => import("@/pages/admin/AdminLeads").then(m => ({ default: m.AdminLeads })));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -37,7 +38,8 @@ export function App() {
       {!isViewer && !isAdmin && <AnimatedBackground />}
       {!isViewer && !isAdmin && <Header />}
       <main className="relative z-10">
-        <Routes>
+        <Suspense fallback={null}>
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/templates/:slug" element={<TemplatePage />} />
           <Route path="/cases" element={<CasesPage />} />
@@ -53,7 +55,8 @@ export function App() {
             <Route path="leads" element={<AdminLeads />} />
           </Route>
           <Route path="*" element={<HomePage />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </main>
       {!isViewer && !isAdmin && <Footer />}
       {!isAdmin && <ChatWidget />}
