@@ -1,6 +1,6 @@
 import urllib.request, json
 
-data = json.dumps({"message": "Привет, хочу сайт для кафе"}).encode()
+data = json.dumps({"message": "Здравствуйте, какие кейсы у вас есть?"}).encode()
 req = urllib.request.Request(
     "http://127.0.0.1:3003/api/chat",
     data=data,
