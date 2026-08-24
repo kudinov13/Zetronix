@@ -20,7 +20,7 @@ export function Footer() {
   return (
     <footer className="relative z-10 border-t border-border" aria-label="Подвал сайта">
       <div className="container-site py-16">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <p className="text-sm font-semibold">Студия «Zetronix»</p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
@@ -28,6 +28,15 @@ export function Footer() {
               понятно и по честной цене.
             </p>
           </div>
+
+          <nav aria-label="Навигация по сайту">
+            <p className="text-sm font-semibold">Навигация</p>
+            <ul className="mt-3 flex flex-col gap-2.5">
+              <li><Link to="/" className="inline-flex min-h-11 items-center text-sm text-muted transition-colors duration-200 hover:text-foreground">Главная</Link></li>
+              <li><Link to="/cases" className="inline-flex min-h-11 items-center text-sm text-muted transition-colors duration-200 hover:text-foreground">Кейсы</Link></li>
+              <li><Link to="/privacy" className="inline-flex min-h-11 items-center text-sm text-muted transition-colors duration-200 hover:text-foreground">Политика конфиденциальности</Link></li>
+            </ul>
+          </nav>
 
           <nav aria-label="Контакты">
             <p className="text-sm font-semibold">Связаться с нами</p>

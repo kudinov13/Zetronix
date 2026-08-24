@@ -14,6 +14,7 @@ import { AdminCategories } from "@/pages/admin/AdminCategories";
 import { AdminCases } from "@/pages/admin/AdminCases";
 import { AdminCertificates } from "@/pages/admin/AdminCertificates";
 import { AdminLeads } from "@/pages/admin/AdminLeads";
+import { PrivacyPage } from "@/pages/PrivacyPage";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { ChatWidget } from "@/components/ChatWidget";
 
@@ -41,6 +42,7 @@ export function App() {
           <Route path="/templates/:slug" element={<TemplatePage />} />
           <Route path="/cases" element={<CasesPage />} />
           <Route path="/cases/:slug" element={<CasePage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />

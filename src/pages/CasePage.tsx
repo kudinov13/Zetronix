@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { api } from "@/lib/api";
 import type { CaseDTO } from "@/lib/types";
 import { useLeadForm } from "@/hooks/useLeadForm";
+import { useSEO } from "@/hooks/useSEO";
 
 export function CasePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -11,6 +12,14 @@ export function CasePage() {
   const [caseData, setCaseData] = useState<CaseDTO | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  useSEO({
+    title: caseData
+      ? `${caseData.title} — кейс автоматизации, Zetronix`
+      : "Кейс не найден — Zetronix",
+    description: caseData?.excerpt || caseData?.description || "Кейс автоматизации бизнес-процессов от студии Zetronix.",
+    canonical: slug ? `/cases/${slug}` : "/cases",
+  });
 
   useEffect(() => {
     if (!slug) {
@@ -23,15 +32,6 @@ export function CasePage() {
     setLoading(true);
     api.getCase(slug).then(setCaseData).catch(() => setNotFound(true)).finally(() => setLoading(false));
   }, [slug]);
-
-  useEffect(() => {
-    if (caseData) {
-      document.title = `${caseData.title} — кейс автоматизации, студия «Zetronix»`;
-    }
-    return () => {
-      document.title = "Сайты и автоматизация для вашего бизнеса — студия «Zetronix»";
-    };
-  }, [caseData]);
 
   if (loading) {
     return (

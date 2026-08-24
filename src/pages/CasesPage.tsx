@@ -6,21 +6,22 @@ import { api } from "@/lib/api";
 import type { CaseDTO } from "@/lib/types";
 import { Reveal } from "@/components/Reveal";
 import { springLayout } from "@/lib/motion";
+import { useSEO } from "@/hooks/useSEO";
 
 export function CasesPage() {
   const [cases, setCases] = useState<CaseDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const reduce = useReducedMotion();
 
-  useEffect(() => {
-    api.listCases().then(setCases).finally(() => setLoading(false));
-  }, []);
+  useSEO({
+    title: "Кейсы автоматизации бизнеса — студия Zetronix",
+    description:
+      "Реальные проекты автоматизации: бухгалтерский учёт, обработка заявок, AI-консультанты. Посмотрите кейсы студии Zetronix и закажите похожее решение.",
+    canonical: "/cases",
+  });
 
   useEffect(() => {
-    document.title = "Кейсы автоматизации бизнеса — студия «Zetronix»";
-    return () => {
-      document.title = "Сайты и автоматизация для вашего бизнеса — студия «Zetronix»";
-    };
+    api.listCases().then(setCases).finally(() => setLoading(false));
   }, []);
 
   return (

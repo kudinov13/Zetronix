@@ -1,0 +1,18 @@
+{
+  "name": "Zetronix — сайты и автоматизация для бизнеса",
+  "short_name": "Zetronix",
+  "description": "Делаем готовые сайты за 1 день и внедряем автоматизацию бизнес-процессов: Telegram-боты, CRM, мобильные и десктопные приложения.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0b0d",
+  "theme_color": "#0a0b0d",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "/favicon.jpg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
