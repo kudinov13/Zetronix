@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Hero } from "@/components/Hero";
+import { Deferred } from "@/components/Deferred";
 
 const HowItWorks = lazy(() => import("@/components/HowItWorks").then(m => ({ default: m.HowItWorks })));
 const TemplateCatalog = lazy(() => import("@/components/TemplateCatalog").then(m => ({ default: m.TemplateCatalog })));
@@ -14,30 +15,46 @@ export function HomePage() {
   return (
     <>
       <Hero />
-      <Suspense fallback={null}>
-        <HowItWorks />
-      </Suspense>
-      <Suspense fallback={null}>
-        <TemplateCatalog />
-      </Suspense>
-      <Suspense fallback={null}>
-        <TeamSection />
-      </Suspense>
-      <Suspense fallback={null}>
-        <CertificatesSection />
-      </Suspense>
-      <Suspense fallback={null}>
-        <IncludedSection />
-      </Suspense>
-      <Suspense fallback={null}>
-        <PricingSection />
-      </Suspense>
-      <Suspense fallback={null}>
-        <FaqSection />
-      </Suspense>
-      <Suspense fallback={null}>
-        <LeadSection />
-      </Suspense>
+      <Deferred>
+        <Suspense fallback={null}>
+          <HowItWorks />
+        </Suspense>
+      </Deferred>
+      <Deferred>
+        <Suspense fallback={null}>
+          <TemplateCatalog />
+        </Suspense>
+      </Deferred>
+      <Deferred>
+        <Suspense fallback={null}>
+          <TeamSection />
+        </Suspense>
+      </Deferred>
+      <Deferred>
+        <Suspense fallback={null}>
+          <CertificatesSection />
+        </Suspense>
+      </Deferred>
+      <Deferred>
+        <Suspense fallback={null}>
+          <IncludedSection />
+        </Suspense>
+      </Deferred>
+      <Deferred>
+        <Suspense fallback={null}>
+          <PricingSection />
+        </Suspense>
+      </Deferred>
+      <Deferred>
+        <Suspense fallback={null}>
+          <FaqSection />
+        </Suspense>
+      </Deferred>
+      <Deferred>
+        <Suspense fallback={null}>
+          <LeadSection />
+        </Suspense>
+      </Deferred>
     </>
   );
 }
