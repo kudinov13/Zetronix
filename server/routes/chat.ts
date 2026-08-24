@@ -94,8 +94,8 @@ function buildSystemPrompt(): string {
 ФОРМАТ ОТВЕТА:
 - Обычный текст ответа клиенту
 - ЕСЛИ у тебя УЖЕ есть имя клиента И его контакт (телефон/email/telegram) И описание задачи — добавь в САМЫЙ КОНЕЦ ответа JSON-блок в формате:
-  [[LEAD]{"name":"Имя","contact":"Контакт","task":"Краткое описание задачи"}[/LEAD]]
-- НЕ добавляй JSON-блок если ещё не собраны все три поля (имя, контакт, задача)
+  [LEAD]{"name":"Имя","contact":"Контакт","task":"Краткое описание задачи"}[/LEAD]
+- НЕ добавляй JSON-блок если ещё не собраны все три поля (имя, контакт, задача) — пустые поля недопустимы
 - JSON-блок невидим для клиента, он нужен только системе
 - В поле name пиши реальное имя клиента, а не случайные слова из контекста
 
@@ -183,7 +183,7 @@ function extractLeadFromReply(reply: string): {
   contact: string;
   task: string;
 } | null {
-  const match = reply.match(/\[\[LEAD\](\{[\s\S]*?\})\[\/LEAD\]\]/);
+  const match = reply.match(/\[LEAD\](\{[\s\S]*?\})\[\/LEAD\]/);
   if (!match) return null;
   try {
     const data = JSON.parse(match[1]) as { name?: string; contact?: string; task?: string };
@@ -283,7 +283,7 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    const cleanReply = reply.replace(/\[\[LEAD\][\s\S]*?\[\/LEAD\]\]/, "").trim();
+    const cleanReply = reply.replace(/\[LEAD\][\s\S]*?\[\/LEAD\]/, "").trim();
 
     res.json({
       reply: cleanReply,
