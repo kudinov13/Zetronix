@@ -55,19 +55,43 @@ interface ChatMessage {
   content: string;
 }
 
-const SYSTEM_PROMPT = `Ты — дружелюбный AI-ассистент студии Zetronix. Студия делает сайты и автоматизирует бизнес-процессы.
+function buildSystemPrompt(): string {
+  const cases = db
+    .prepare("SELECT title, excerpt FROM cases ORDER BY sort_order ASC")
+    .all() as { title: string; excerpt: string }[];
+
+  const categories = db
+    .prepare("SELECT name FROM categories ORDER BY sort_order ASC")
+    .all() as { name: string }[];
+
+  const casesList = cases.length
+    ? cases.map((c) => `- ${c.title}${c.excerpt ? ` — ${c.excerpt}` : ""}`).join("\n")
+    : "(пока нет опубликованных кейсов)";
+
+  const categoriesList = categories.length
+    ? categories.map((c) => c.name).join(", ")
+    : "(категории скоро появятся)";
+
+  return `Ты — дружелюбный AI-ассистент студии Zetronix. Студия делает сайты и автоматизирует бизнес-процессы.
 
 Твоя задача:
 1. Ответить на вопросы клиента о студии и услугах
 2. После 2-3 сообщений от клиента собери его данные: имя, контакт (телефон или мессенджер), и что ему нужно
 3. Когда соберёшь все данные, скажи клиенту что передашь заявку менеджеру и прощайся
 
+Информация о студии:
+- Категории услуг: ${categoriesList}
+- Кейсы и работы:
+${casesList}
+- Подробно кейсы можно посмотреть на zetronix.ru/cases
+
 Правила:
 - Отвечай кратко, дружелюбно, на русском языке
 - Не выдумывай цены — скажи что цены обсуждаются индивидуально
-- Если клиент спрашивает о портфолио — направь на zetronix.ru
-- Не более 3-4 предложений в ответе
+- Если клиент спрашивает о кейсах — перечисли их из списка выше с кратким описанием (1 предложение на каждый)
+- Не более 5 предложений в ответе
 - Когда соберёшь имя, контакт и описание задачи, обязательно скажи "ЗАЯВКА_СОБРАНА" в конце своего ответа (это скрытый маркер для системы)`;
+}
 
 interface SessionState {
   messages: ChatMessage[];
@@ -211,7 +235,7 @@ router.post("/", async (req: Request, res: Response) => {
   session.messageCount++;
 
   const apiMessages: ChatMessage[] = [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: buildSystemPrompt() },
     ...session.messages.slice(-10),
   ];
 
