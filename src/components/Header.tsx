@@ -68,6 +68,10 @@ export function Header() {
             <img
               src="/favicon.jpg"
               alt="Zetronix"
+              width={32}
+              height={32}
+              loading="eager"
+              decoding="async"
               className="size-8 rounded-lg object-cover"
             />
             <span className="font-display text-sm font-semibold tracking-tight">

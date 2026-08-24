@@ -21,18 +21,18 @@ export function IncludedSection() {
           </div>
         </div>
 
-        <dl className="lg:col-span-7">
+        <div className="lg:col-span-7">
           {includedItems.map((item, index) => (
             <Reveal key={item.title} delay={index * 0.05}>
               <div className="border-t border-border py-6 first:border-t-0 first:pt-0 lg:first:border-t lg:first:pt-6">
-                <dt className="text-lg font-semibold">{item.title}</dt>
-                <dd className="mt-2 max-w-xl leading-relaxed text-muted">
+                <h3 className="text-lg font-semibold">{item.title}</h3>
+                <p className="mt-2 max-w-xl leading-relaxed text-muted">
                   {item.description}
-                </dd>
+                </p>
               </div>
             </Reveal>
           ))}
-        </dl>
+        </div>
       </div>
     </section>
   );

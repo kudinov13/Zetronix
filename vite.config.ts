@@ -8,6 +8,17 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "src") },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "framer-motion": ["framer-motion"],
+          "lucide": ["lucide-react"],
+        },
+      },
+    },
+  },
   server: {
     host: true,
     proxy: {
