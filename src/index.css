@@ -18,6 +18,22 @@
   --font-sans: "Onest Variable", system-ui, sans-serif;
 }
 
+@font-face {
+  font-family: "Onest Variable";
+  font-display: swap;
+  size-adjust: 100.5%;
+  ascent-override: 95%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+  src: local("Onest Variable");
+}
+
+@font-face {
+  font-family: "Unbounded Variable";
+  font-display: optional;
+  src: local("Unbounded Variable");
+}
+
 :root,
 .dark {
   --bg: #0a0b0d;
@@ -234,24 +250,22 @@ body {
 }
 
 @keyframes hero-fade-up {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(24px); }
+  to { transform: translateY(0); }
 }
 
 .hero-animate > * {
-  opacity: 0;
-  animation: hero-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: hero-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .hero-stagger-1 { animation-delay: 0s; }
-.hero-stagger-2 { animation-delay: 0.12s; }
-.hero-stagger-3 { animation-delay: 0.24s; }
-.hero-stagger-4 { animation-delay: 0.36s; }
+.hero-stagger-2 { animation-delay: 0.08s; }
+.hero-stagger-3 { animation-delay: 0.16s; }
+.hero-stagger-4 { animation-delay: 0.24s; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-animate > * {
     animation: none !important;
-    opacity: 1 !important;
   }
 }
 
