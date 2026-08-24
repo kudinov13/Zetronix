@@ -97,16 +97,20 @@ function buildSystemPrompt(): string {
 3. На третье сообщение — если у тебя уже есть имя и контакт, попрощайся и скажи что менеджер свяжется с ним
 4. Если клиент не дал имя/контакт — попроси ещё раз, объясни что это нужно для связи
 
-ФОРМАТ ОТВЕТА:
-- Обычный текст ответа клиенту
-- ЕСЛИ у тебя УЖЕ есть РЕАЛЬНОЕ имя клиента И его РЕАЛЬНЫЙ контакт (телефон/email/telegram) — добавь в САМЫЙ КОНЕЦ ответа JSON-блок:
-  [LEAD]{"name":"Имя","contact":"Контакт","task":"Описание"}[/LEAD]
-- В поле task опиши что нужно клиенту. Если клиент ещё не сказал что ему нужно — напиши "хочет узнать подробнее" или оставь пустым
-- НЕ добавляй JSON-блок если нет реального имени или контакта — заглушки вроде "имя клиента" НЕДОПУСТИМЫ
-- JSON-блок невидим для клиента
-- В поле name — реальное имя клиента (не слова из контекста)
-- В поле contact — только сам контакт (телефон/email/telegram-ник)
-- В поле task — что нужно клиенту + предпочитаемый способ связи если он его назвал в ЛЮБОМ из предыдущих сообщений (например "просит написать в мессенджер Max") + пожелания. Перечитывай всю историю переписки перед заполнением task.
+ЛЕAD-БЛОК — САМОЕ ВАЖНОЕ ПРАВИЛО:
+Добавляй [LEAD]{"name":"Имя","contact":"Контакт","task":"Описание"}[/LEAD] в КОНЕЦ ответа ТОЛЬКО когда выполняются ВСЕ условия:
+- Клиент НАЗВАЛ своё реальное имя (не пустая строка, не "имя клиента")
+- Клиент НАЗВАЛ свой реальный контакт: телефон, email или telegram (не пустая строка)
+- НИКОГДА не добавляй LEAD-блок с пустыми полями name или contact
+- НИКОГДА не добавляй LEAD-блок если клиент ещё НЕ назвал имя или контакт
+- LEAD-блок невидим для клиента
+
+Примеры:
+Клиент: "Меня зовут Михаил, телефон 89001234567" → добавь LEAD с name="Михаил", contact="89001234567"
+Клиент: "Расскажите про кейсы" → НЕ добавляй LEAD (нет имени и контакта)
+Клиент: "Меня зовут Олег" → НЕ добавляй LEAD (нет контакта)
+
+В поле task — что нужно клиенту + способ связи если он его назвал (например "просит написать в мессенджер Max").
 
 Когда собирать данные:
 - Если клиент задаёт вопрос, на который у тебя нет точного ответа — скажи что уточнишь у менеджера, и попроси имя + контакт
@@ -192,19 +196,21 @@ function extractLeadFromReply(reply: string): {
   contact: string;
   task: string;
 } | null {
-  const match = reply.match(/\[LEAD\](\{[\s\S]*?\})\[\/LEAD\]/);
+  const match = reply.match(/\[LEAD\](\{[\s\S]*?\})(?:\[\/LEAD\]|$)/);
   if (!match) return null;
   try {
     const data = JSON.parse(match[1]) as { name?: string; contact?: string; task?: string };
-    if (data.name && data.contact) {
+    const name = (data.name || "").trim();
+    const contact = (data.contact || "").trim();
+    if (name.length > 1 && contact.length > 2 && name !== "Имя" && contact !== "Контакт") {
       return {
-        name: data.name.trim(),
-        contact: data.contact.trim(),
+        name,
+        contact,
         task: (data.task || "").trim(),
       };
     }
   } catch {
-    console.error("[chat] Failed to parse LEAD JSON from reply");
+    logToFile("[chat] Failed to parse LEAD JSON from reply: " + match[1].slice(0, 100));
   }
   return null;
 }
@@ -320,7 +326,7 @@ router.post("/", async (req: Request, res: Response) => {
       }).catch((e) => logToFile("[chat] Telegram send error: " + e.message));
     }
 
-    const cleanReply = reply.replace(/\[LEAD\][\s\S]*?\[\/LEAD\]/, "").trim();
+    const cleanReply = reply.replace(/\[LEAD\][\s\S]*?(\[\/LEAD\]|$)/, "").trim();
 
     res.json({
       reply: cleanReply,
