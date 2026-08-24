@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import https from "node:https";
+import crypto from "node:crypto";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import db from "../db.js";
 
@@ -61,7 +62,10 @@ async function getGigaChatToken(): Promise<string> {
       });
     });
 
-    req.on("error", (err) => reject(new Error("GigaChat auth request error: " + err.message)));
+    req.on("error", (err) => {
+      console.error("[chat] GigaChat auth request error:", err.message);
+      reject(new Error("GigaChat auth request error: " + err.message));
+    });
     req.write(payload);
     req.end();
   });
@@ -217,7 +221,10 @@ async function callGigaChat(messages: ChatMessage[]): Promise<string> {
       });
     });
 
-    req.on("error", (err) => reject(new Error("GigaChat request error: " + err.message)));
+    req.on("error", (err) => {
+      console.error("[chat] GigaChat request error:", err.message);
+      reject(new Error("GigaChat request error: " + err.message));
+    });
     req.write(payload);
     req.end();
   });
@@ -283,7 +290,7 @@ router.post("/", async (req: Request, res: Response) => {
       leadCreated,
     });
   } catch (err) {
-    console.error("[chat] Error:", err);
+    console.error("[chat] Error:", err instanceof Error ? err.message : String(err));
     res.status(500).json({
       error: "Не удалось получить ответ от AI. Попробуйте позже.",
       sessionId: sid,
