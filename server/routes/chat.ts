@@ -99,9 +99,10 @@ function buildSystemPrompt(): string {
 
 ФОРМАТ ОТВЕТА:
 - Обычный текст ответа клиенту
-- ЕСЛИ у тебя УЖЕ есть РЕАЛЬНОЕ имя клиента И его РЕАЛЬНЫЙ контакт (телефон/email/telegram) И описание задачи — добавь в САМЫЙ КОНЕЦ ответа JSON-блок:
+- ЕСЛИ у тебя УЖЕ есть РЕАЛЬНОЕ имя клиента И его РЕАЛЬНЫЙ контакт (телефон/email/telegram) — добавь в САМЫЙ КОНЕЦ ответа JSON-блок:
   [LEAD]{"name":"Имя","contact":"Контакт","task":"Описание"}[/LEAD]
-- НЕ добавляй JSON-блок если ещё не собраны все три поля — пустые строки и заглушки вроде "имя клиента" НЕДОПУСТИМЫ
+- В поле task опиши что нужно клиенту. Если клиент ещё не сказал что ему нужно — напиши "хочет узнать подробнее" или оставь пустым
+- НЕ добавляй JSON-блок если нет реального имени или контакта — заглушки вроде "имя клиента" НЕДОПУСТИМЫ
 - JSON-блок невидим для клиента
 - В поле name — реальное имя клиента (не слова из контекста)
 - В поле contact — только сам контакт (телефон/email/telegram-ник)
@@ -195,11 +196,11 @@ function extractLeadFromReply(reply: string): {
   if (!match) return null;
   try {
     const data = JSON.parse(match[1]) as { name?: string; contact?: string; task?: string };
-    if (data.name && data.contact && data.task) {
+    if (data.name && data.contact) {
       return {
         name: data.name.trim(),
         contact: data.contact.trim(),
-        task: data.task.trim(),
+        task: (data.task || "").trim(),
       };
     }
   } catch {
@@ -293,19 +294,12 @@ router.post("/", async (req: Request, res: Response) => {
       }
 
       let finalTask = leadData.task;
+      if (!finalTask) {
+        const userTexts = session.messages.filter((m) => m.role === "user").map((m) => m.content);
+        finalTask = userTexts.slice(1).join(" ").slice(0, 300) || userTexts[0] || "Обращение через AI-бота";
+      }
       if (contactPrefs.length > 0) {
-        const taskLower = finalTask.toLowerCase();
-        const missing = contactPrefs.filter((p) => {
-          const prefLower = p.toLowerCase();
-          if (prefLower.includes("max")) return !taskLower.includes("max") && !taskLower.includes("макс");
-          if (prefLower.includes("telegram")) return !taskLower.includes("telegram") && !taskLower.includes("телеграм");
-          if (prefLower.includes("whatsapp")) return !taskLower.includes("whatsapp") && !taskLower.includes("вацап");
-          if (prefLower.includes("позвонить")) return !taskLower.includes("позвонит");
-          return true;
-        });
-        if (missing.length > 0) {
-          finalTask = finalTask + ". Просит: " + missing.join(", ");
-        }
+        finalTask = finalTask + ". Просит: " + contactPrefs.join(", ");
       }
 
       const info = db
