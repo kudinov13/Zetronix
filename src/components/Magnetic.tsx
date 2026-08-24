@@ -1,10 +1,4 @@
 import { useRef, type ReactNode, type MouseEvent } from "react";
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useSpring,
-} from "framer-motion";
 
 interface MagneticProps {
   children: ReactNode;
@@ -14,34 +8,31 @@ interface MagneticProps {
 
 export function Magnetic({ children, strength = 0.25, className }: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 180, damping: 16 });
-  const springY = useSpring(y, { stiffness: 180, damping: 16 });
 
   const handleMove = (event: MouseEvent<HTMLDivElement>) => {
-    if (reduce || !ref.current) return;
+    if (!ref.current) return;
     if (window.matchMedia("(pointer: coarse)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const rect = ref.current.getBoundingClientRect();
-    x.set((event.clientX - rect.left - rect.width / 2) * strength);
-    y.set((event.clientY - rect.top - rect.height / 2) * strength);
+    const x = (event.clientX - rect.left - rect.width / 2) * strength;
+    const y = (event.clientY - rect.top - rect.height / 2) * strength;
+    ref.current.style.transform = `translate(${x}px, ${y}px)`;
   };
 
   const handleLeave = () => {
-    x.set(0);
-    y.set(0);
+    if (!ref.current) return;
+    ref.current.style.transform = "translate(0, 0)";
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
       className={className}
-      style={{ x: springX, y: springY, display: "inline-block" }}
+      style={{ display: "inline-block", transition: "transform 0.2s ease-out" }}
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

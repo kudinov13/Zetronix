@@ -1,7 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
 import { VideoBackground } from "@/components/VideoBackground";
 import { Magnetic } from "@/components/Magnetic";
-import { EASE_OUT } from "@/lib/motion";
 
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({
@@ -18,21 +16,6 @@ const trustItems = [
 ];
 
 export function Hero() {
-  const reduce = useReducedMotion();
-
-  const container = {
-    hidden: {},
-    visible: { transition: { staggerChildren: reduce ? 0 : 0.12 } },
-  };
-  const item = {
-    hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 24 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: reduce ? 0.3 : 0.7, ease: EASE_OUT },
-    },
-  };
-
   return (
     <section
       aria-labelledby="hero-title"
@@ -40,31 +23,22 @@ export function Hero() {
     >
       <VideoBackground />
 
-      <motion.div
-        className="container-site relative z-10 pb-24 pt-24"
-        variants={container}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.h1
+      <div className="container-site relative z-10 pb-24 pt-24 hero-animate">
+        <h1
           id="hero-title"
-          variants={item}
-          className="h-display max-w-4xl"
+          className="h-display max-w-4xl hero-stagger-1"
         >
           Сайты и автоматизация{" "}
           <span className="text-accent">для вашего бизнеса</span>
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          variants={item}
-          className="mt-6 max-w-xl text-lg leading-relaxed text-muted md:text-xl"
-        >
+        <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted md:text-xl hero-stagger-2">
           Делаем готовые сайты за 1 день и внедряем автоматизацию бизнес-процессов:
           Telegram-боты, CRM, мобильные и десктопные приложения. Выберите шаблон
           или закажите решение под вашу задачу.
-        </motion.p>
+        </p>
 
-        <motion.div variants={item} className="mt-9 flex flex-wrap gap-3">
+        <div className="mt-9 flex flex-wrap gap-3 hero-stagger-3">
           <Magnetic>
             <button
               type="button"
@@ -92,12 +66,9 @@ export function Hero() {
               Обсудить проект
             </button>
           </Magnetic>
-        </motion.div>
+        </div>
 
-        <motion.ul
-          variants={item}
-          className="mt-10 flex flex-wrap items-center gap-x-0 gap-y-2 text-sm text-muted"
-        >
+        <ul className="mt-10 flex flex-wrap items-center gap-x-0 gap-y-2 text-sm text-muted hero-stagger-4">
           {trustItems.map((text, i) => (
             <li key={text} className="flex items-center">
               {i > 0 && (
@@ -106,8 +77,8 @@ export function Hero() {
               {text}
             </li>
           ))}
-        </motion.ul>
-      </motion.div>
+        </ul>
+      </div>
 
       <div
         aria-hidden
