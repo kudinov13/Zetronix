@@ -304,8 +304,17 @@ router.post("/", async (req: Request, res: Response) => {
         const userTexts = session.messages.filter((m) => m.role === "user").map((m) => m.content);
         finalTask = userTexts.slice(1).join(" ").slice(0, 300) || userTexts[0] || "Обращение через AI-бота";
       }
-      if (contactPrefs.length > 0) {
-        finalTask = finalTask + ". Просит: " + contactPrefs.join(", ");
+      const taskLower = finalTask.toLowerCase();
+      const missingPrefs = contactPrefs.filter((p) => {
+        const pLower = p.toLowerCase();
+        if (pLower.includes("max")) return !taskLower.includes("max") && !taskLower.includes("макс");
+        if (pLower.includes("telegram")) return !taskLower.includes("telegram") && !taskLower.includes("телеграм");
+        if (pLower.includes("whatsapp")) return !taskLower.includes("whatsapp") && !taskLower.includes("вацап");
+        if (pLower.includes("позвонить")) return !taskLower.includes("позвонит");
+        return true;
+      });
+      if (missingPrefs.length > 0) {
+        finalTask = finalTask + ". Просит: " + missingPrefs.join(", ");
       }
 
       const info = db
