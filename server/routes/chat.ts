@@ -91,11 +91,13 @@ function buildSystemPrompt(): string {
 3. На третье сообщение — если у тебя уже есть имя и контакт, попрощайся и скажи что менеджер свяжется с ним
 4. Если клиент не дал имя/контакт — попроси ещё раз, объясни что это нужно для связи
 
-КРИТИЧЕСКИ ВАЖНО про маркер ЗАЯВКА_СОБРАНА:
-- Добавляй "ЗАЯВКА_СОБРАНА" в КОНЕЦ ответа ТОЛЬКО если у тебя УЖЕ есть имя клиента И его контакт (телефон/email/telegram) И описание его задачи
-- НЕ ставь маркер если ты только задал вопрос и ждёшь ответа
-- НЕ ставь маркер если клиент ещё не назвал своё имя или контакт
-- Маркер невидим для клиента, он нужен только системе
+ФОРМАТ ОТВЕТА:
+- Обычный текст ответа клиенту
+- ЕСЛИ у тебя УЖЕ есть имя клиента И его контакт (телефон/email/telegram) И описание задачи — добавь в САМЫЙ КОНЕЦ ответа JSON-блок в формате:
+  [[LEAD]{"name":"Имя","contact":"Контакт","task":"Краткое описание задачи"}[/LEAD]]
+- НЕ добавляй JSON-блок если ещё не собраны все три поля (имя, контакт, задача)
+- JSON-блок невидим для клиента, он нужен только системе
+- В поле name пиши реальное имя клиента, а не случайные слова из контекста
 
 Когда собирать данные:
 - Если клиент задаёт вопрос, на который у тебя нет точного ответа — скажи что уточнишь у менеджера, и попроси имя + контакт
@@ -176,32 +178,26 @@ function sendTelegramNotification(lead: {
   });
 }
 
-function extractLeadData(conversation: ChatMessage[]): {
+function extractLeadFromReply(reply: string): {
   name: string;
   contact: string;
-  comment: string;
+  task: string;
 } | null {
-  const fullText = conversation.map((m) => m.content).join("\n");
-
-  const nameMatch = fullText.match(
-    /(?:меня\s+зовут|я\s+|имя[:\s]+|это\s+)([А-ЯЁа-яёA-Za-z]{2,30})/i,
-  );
-  const contactMatch = fullText.match(
-    /(\+?\d[\d\s\-\(\)]{7,18}|@[a-zA-Z0-9_]{3,30}|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/,
-  );
-
-  const name = nameMatch?.[1]?.trim();
-  const contact = contactMatch?.[1]?.trim();
-
-  if (!name || !contact) return null;
-
-  const comment = conversation
-    .filter((m) => m.role === "user")
-    .map((m) => m.content)
-    .join(" ")
-    .slice(0, 500);
-
-  return { name, contact, comment };
+  const match = reply.match(/\[\[LEAD\](\{[\s\S]*?\})\[\/LEAD\]\]/);
+  if (!match) return null;
+  try {
+    const data = JSON.parse(match[1]) as { name?: string; contact?: string; task?: string };
+    if (data.name && data.contact && data.task) {
+      return {
+        name: data.name.trim(),
+        contact: data.contact.trim(),
+        task: data.task.trim(),
+      };
+    }
+  } catch {
+    console.error("[chat] Failed to parse LEAD JSON from reply");
+  }
+  return null;
 }
 
 async function callGigaChat(messages: ChatMessage[]): Promise<string> {
@@ -267,29 +263,27 @@ router.post("/", async (req: Request, res: Response) => {
 
     let leadCreated = false;
 
-    if (reply.includes("ЗАЯВКА_СОБРАНА") && !session.leadCreated) {
-      const leadData = extractLeadData(session.messages);
-      if (leadData) {
-        const info = db
-          .prepare(
-            "INSERT INTO leads (name, contact, template_slug, comment) VALUES (?, ?, ?, ?)",
-          )
-          .run(leadData.name, leadData.contact, null, leadData.comment);
+    const leadData = extractLeadFromReply(reply);
+    if (leadData && !session.leadCreated) {
+      const info = db
+        .prepare(
+          "INSERT INTO leads (name, contact, template_slug, comment) VALUES (?, ?, ?, ?)",
+        )
+        .run(leadData.name, leadData.contact, null, leadData.task);
 
-        const leadId = info.lastInsertRowid as number;
-        session.leadCreated = true;
-        leadCreated = true;
+      const leadId = info.lastInsertRowid as number;
+      session.leadCreated = true;
+      leadCreated = true;
 
-        sendTelegramNotification({
-          id: leadId,
-          name: leadData.name,
-          contact: leadData.contact,
-          comment: leadData.comment,
-        });
-      }
+      sendTelegramNotification({
+        id: leadId,
+        name: leadData.name,
+        contact: leadData.contact,
+        comment: leadData.task,
+      });
     }
 
-    const cleanReply = reply.replace("ЗАЯВКА_СОБРАНА", "").trim();
+    const cleanReply = reply.replace(/\[\[LEAD\][\s\S]*?\[\/LEAD\]\]/, "").trim();
 
     res.json({
       reply: cleanReply,
