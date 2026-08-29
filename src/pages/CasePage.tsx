@@ -144,7 +144,7 @@ export function CasePage() {
 
       {caseData.videoUrl && (
         <div className="mt-10 max-w-4xl">
-          <h2 className="text-xl font-semibold">Видео демонстрация</h2>
+          <h2 className="text-xl font-semibold">Видеодемонстрация</h2>
           <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface">
             <video
               src={caseData.videoUrl}

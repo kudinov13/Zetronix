@@ -133,7 +133,7 @@ export function ChatWidget() {
 
             {leadDone && (
               <div className="rounded-xl border border-accent/30 bg-accent/10 px-3.5 py-2.5 text-center text-sm text-accent">
-                Заявка отправлена! Менеджер свяжется с вами.
+                Заявка отправлена! Мы свяжемся с вами.
               </div>
             )}
           </div>

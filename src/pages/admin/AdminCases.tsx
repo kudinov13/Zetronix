@@ -298,7 +298,7 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="case-desc" className="text-sm font-medium">Краткое описание кейса</label>
+            <label htmlFor="case-desc" className="text-sm font-medium">Описание кейса</label>
             <textarea
               id="case-desc"
               value={description}
@@ -329,7 +329,7 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
               onChange={(e) => setSolution(e.target.value)}
               rows={6}
               className="rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-accent"
-              placeholder="Как было решено проблему, что было внедрено..."
+              placeholder="Как была решена проблема, что было внедрено..."
             />
           </div>
 
@@ -420,7 +420,7 @@ function CaseForm({ existing, onClose, onSaved }: CaseFormProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Видео демонстрации</label>
+            <label className="text-sm font-medium">Видеодемонстрация</label>
             <div className="flex items-center gap-4">
               {videoUrl && (
                 <span className="flex items-center gap-2 text-sm text-muted">

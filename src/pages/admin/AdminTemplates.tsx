@@ -293,7 +293,7 @@ function TemplateForm({ categories, onClose, onSaved }: TemplateFormProps) {
             {previewUrl && (
               <img
                 src={previewUrl}
-                alt="Превью превью"
+                alt="Превью шаблона"
                 className="mt-2 aspect-[4/3] w-full rounded-xl border border-border object-cover"
               />
             )}
